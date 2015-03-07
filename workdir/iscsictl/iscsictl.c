@@ -482,63 +482,115 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 	}
 
 	if (verbose != 0) {
+		xo_open_list("target");
 		for (i = 0; i < isl.isl_nentries; i++) {
 			state = &states[i];
 			conf = &state->iss_conf;
-
-			printf("Session ID:       %u\n", state->iss_id);
-			printf("Initiator name:   %s\n", conf->isc_initiator);
-			printf("Initiator portal: %s\n",
-			    conf->isc_initiator_addr);
-			printf("Initiator alias:  %s\n",
-			    conf->isc_initiator_alias);
-			printf("Target name:      %s\n", conf->isc_target);
-			printf("Target portal:    %s\n",
-			    conf->isc_target_addr);
-			printf("Target alias:     %s\n",
-			    state->iss_target_alias);
-			printf("User:             %s\n", conf->isc_user);
-			printf("Secret:           %s\n", conf->isc_secret);
-			printf("Mutual user:      %s\n",
-			    conf->isc_mutual_user);
-			printf("Mutual secret:    %s\n",
-			    conf->isc_mutual_secret);
-			printf("Session type:     %s\n",
-			    conf->isc_discovery ? "Discovery" : "Normal");
-			printf("Session state:    %s\n",
-			    state->iss_connected ?
-			    "Connected" : "Disconnected");
-			printf("Failure reason:   %s\n", state->iss_reason);
-			printf("Header digest:    %s\n",
-			    state->iss_header_digest == ISCSI_DIGEST_CRC32C ?
-			    "CRC32C" : "None");
-			printf("Data digest:      %s\n",
-			    state->iss_data_digest == ISCSI_DIGEST_CRC32C ?
-			    "CRC32C" : "None");
-			printf("DataSegmentLen:   %d\n",
-			    state->iss_max_data_segment_length);
-			printf("ImmediateData:    %s\n",
-			    state->iss_immediate_data ? "Yes" : "No");
-			printf("iSER (RDMA):      %s\n",
-			    conf->isc_iser ? "Yes" : "No");
-			printf("Offload driver:   %s\n", state->iss_offload);
-			printf("Device nodes:     ");
+			
+			xo_open_instance("target");
+			
+			// This should be grouped into the 
+			// session container for data. 
+			xo_emit("{Ld:/%-18s}{Vd:sessionId/%u}\n",
+				"Session ID:", state->iss_id);
+			
+			// Start Container: initiator
+			xo_open_container("initiator");
+			xo_emit("{L:/%-18s}{V:name/%s}\n",
+				"Initiator name:", conf->isc_initiator);
+			xo_emit("{L:/%-18s}{V:portal/%s}\n",
+				"Initiator portal:", conf->isc_initiator_addr);
+			xo_emit("{L:/%-18s}{V:alias/%s}\n",
+				"Initiator alias:", conf->isc_initiator_alias);
+			xo_close_container("initiator");
+			// End Container: initiator
+			
+			// Start Container: target
+			xo_open_container("target");
+			xo_emit("{L:/%-18s}{V:name/%s}\n",
+				"Target name:", conf->isc_target);
+			xo_emit("{L:/%-18s}{V:portal/%s}\n",
+				"Target portal:", conf->isc_target_addr);
+			xo_emit("{L:/%-18s}{V:alias/%s}\n",
+				"Target alias:", state->iss_target_alias);
+			xo_close_container("target");
+			// End Container: target
+			
+			// Start Container: auth
+			xo_open_container("auth");
+			xo_emit("{L:/%-18s}{V:user/%s}\n",
+				"User:", conf->isc_user);
+			xo_emit("{L:/%-18s}{V:secret/%s}\n",
+				"Secret:", conf->isc_secret);
+			xo_emit("{L:/%-18s}{V:mutualUser/%s}\n",
+				"Mutual user:", conf->isc_mutual_user);
+			xo_emit("{L:/%-18s}{V:mutualSecret/%s}\n",
+				"Mutual secret:", conf->isc_mutual_secret);
+			xo_close_container("auth");
+			// End Container: auth
+			
+			// Start Container: session
+			xo_open_container("session");
+			/*  Session ID is already printed for 
+			 *  display outputs. Only include it for
+			 *  non-display output. 
+			 */
+			xo_emit("{Ve:id/%u}\n",
+				state->iss_id);
+			xo_emit("{L:/%-18s}{V:type/%s}\n",
+				"Session type:", (conf->isc_discovery ? "Discovery" : "Normal"));
+			xo_emit("{L:/%-18s}{V:state/%s}\n",
+				"Session state:", 
+				(state->iss_connected ?
+			    "Connected" : "Disconnected"));
+			xo_close_container("session");
+			// End Container: session
+			
+			xo_emit("{L:/%-18s}{V:failureReason/%s}\n",
+				"Failure reason:", state->iss_reason);
+			
+			// Start Container: digest
+			xo_open_container("digest");
+			xo_emit("{L:/%-18s}{V:header/%s}\n",
+				"Header digest:", 
+				(state->iss_header_digest == ISCSI_DIGEST_CRC32C ?
+			    "CRC32C" : "None"));
+			xo_emit("{L:/%-18s}{V:data/%s}\n",
+				"Data digest:", 
+				(state->iss_data_digest == ISCSI_DIGEST_CRC32C ?
+			    "CRC32C" : "None"));
+			xo_close_container("digest");
+			// End Container: digest
+			
+			xo_emit("{L:/%-18s}{V:dataSegmentLen/%d}\n",
+				"DataSegmentLen:", state->iss_max_data_segment_length);
+			xo_emit("{L:/%-18s}{V:immediateData/%s}\n",
+				"Immediate data:", state->iss_immediate_data ? "Yes" : "No");
+			xo_emit("{L:/%-18s}{V:iSER/%s}\n",
+				"iSER (RDMA):", conf->isc_iser ? "Yes" : "No");
+			
+			xo_emit("{L:/%-18s}{V:offloadDriver/%s}\n",
+				"Offload driver:", state->iss_offload);
+			xo_emit("{L:/%-18s}",
+				"Device nodes:");
 			print_periphs(state->iss_id);
-			printf("\n\n");
+			xo_emit("\n\n");
+			xo_close_instance("target");
 		}
+		xo_close_list("target");
 	} else {
 		xo_emit("{T:/%-36s} {T:/%-16s} {T:/%s}\n",
 			"Target name", "Target portal", "State");
 		
 		for (i = 0; i < isl.isl_nentries; i++) {
 			if (i == 0) {
-				xo_open_list("targets");
+				xo_open_list("target");
 			}
 			
 			state = &states[i];
 			conf = &state->iss_conf;
 
-			xo_open_instance("targets");
+			xo_open_instance("target");
 			xo_emit("{V:target/%-36s} {V:portal/%-16s}",
 				conf->isc_target, conf->isc_target_addr);
 			
@@ -555,10 +607,10 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 					xo_emit("{V:state}\n", "Disconnected");
 				}
 			}
-			xo_close_instance("targets");
+			xo_close_instance("target");
 		}
 		if (isl.isl_nentries != 0) {
-			xo_close_list("targets");
+			xo_close_list("target");
 		}
 	}
 
