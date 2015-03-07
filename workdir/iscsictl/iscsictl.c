@@ -527,8 +527,6 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			printf("\n\n");
 		}
 	} else {
-		//printf("%-36s %-16s %s\n",
-		//   "Target name", "Target portal", "State");
 		xo_emit("{T:/%-36s} {T:/%-16s} {T:/%s}\n",
 			"Target name", "Target portal", "State");
 		
@@ -540,27 +538,20 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			state = &states[i];
 			conf = &state->iss_conf;
 
-			/*printf("%-36s %-16s ",
-			    conf->isc_target, conf->isc_target_addr);*/			
 			xo_open_instance("targets");
 			xo_emit("{V:target/%-36s} {V:portal/%-16s}",
 				conf->isc_target, conf->isc_target_addr);
 			
 			if (state->iss_reason[0] != '\0') {
 				xo_emit("{V:state/%s", state->iss_reason);
-				//printf("%s\n", state->iss_reason);
 			} else {
 				if (conf->isc_discovery) {
-					//printf("Discovery\n");
 					xo_emit("{V:state}\n", "Discovery");
 				} else if (state->iss_connected) {
-					//printf("Connected: ");
 					xo_emit("{V:state}: ", "Connected");
 					print_periphs(state->iss_id);
-					//printf("\n");
 					xo_emit("\n");
 				} else {
-					//printf("Disconnected\n");
 					xo_emit("{V:state}\n", "Disconnected");
 				}
 			}
