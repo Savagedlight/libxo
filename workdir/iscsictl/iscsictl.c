@@ -489,12 +489,14 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			
 			xo_open_instance("target");
 			
-			// This should be grouped into the 
-			// session container for data. 
+			/* 
+			 * Display-only modifier as this information
+			 * is also present within the 'session' container
+			 */
 			xo_emit("{Ld:/%-18s}{Vd:sessionId/%u}\n",
 				"Session ID:", state->iss_id);
 			
-			// Start Container: initiator
+			/* Start Container: initiator */
 			xo_open_container("initiator");
 			xo_emit("{L:/%-18s}{V:name/%s}\n",
 				"Initiator name:", conf->isc_initiator);
@@ -503,9 +505,9 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			xo_emit("{L:/%-18s}{V:alias/%s}\n",
 				"Initiator alias:", conf->isc_initiator_alias);
 			xo_close_container("initiator");
-			// End Container: initiator
+			/* End Container: initiator */
 			
-			// Start Container: target
+			/* Start Container: target */
 			xo_open_container("target");
 			xo_emit("{L:/%-18s}{V:name/%s}\n",
 				"Target name:", conf->isc_target);
@@ -514,9 +516,9 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			xo_emit("{L:/%-18s}{V:alias/%s}\n",
 				"Target alias:", state->iss_target_alias);
 			xo_close_container("target");
-			// End Container: target
+			/* End Container: target */
 			
-			// Start Container: auth
+			/* Start Container: auth */
 			xo_open_container("auth");
 			xo_emit("{L:/%-18s}{V:user/%s}\n",
 				"User:", conf->isc_user);
@@ -527,15 +529,16 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			xo_emit("{L:/%-18s}{V:mutualSecret/%s}\n",
 				"Mutual secret:", conf->isc_mutual_secret);
 			xo_close_container("auth");
-			// End Container: auth
+			/* End Container: auth */
 			
-			// Start Container: session
+			/* Start Container: session */
 			xo_open_container("session");
-			/*  Session ID is already printed for 
-			 *  display outputs. Only include it for
-			 *  non-display output. 
+			/*  
+			 * Session ID is already printed for 
+			 * display outputs. Only include it for
+			 * non-display output. 
 			 */
-			xo_emit("{Ve:id/%u\n}",
+			xo_emit("{Ve:id/%u}",
 				state->iss_id);
 			xo_emit("{L:/%-18s}{V:type/%s}\n",
 				"Session type:", (conf->isc_discovery ? "Discovery" : "Normal"));
@@ -544,12 +547,12 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 				(state->iss_connected ?
 			    "Connected" : "Disconnected"));
 			xo_close_container("session");
-			// End Container: session
+			/* End Container: session */
 			
 			xo_emit("{L:/%-18s}{V:failureReason/%s}\n",
 				"Failure reason:", state->iss_reason);
 			
-			// Start Container: digest
+			/* Start Container: digest */
 			xo_open_container("digest");
 			xo_emit("{L:/%-18s}{V:header/%s}\n",
 				"Header digest:", 
@@ -560,7 +563,7 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 				(state->iss_data_digest == ISCSI_DIGEST_CRC32C ?
 			    "CRC32C" : "None"));
 			xo_close_container("digest");
-			// End Container: digest
+			/* End Container: digest */
 			
 			xo_emit("{L:/%-18s}{V:dataSegmentLen/%d}\n",
 				"DataSegmentLen:", state->iss_max_data_segment_length);
@@ -591,7 +594,7 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			conf = &state->iss_conf;
 
 			xo_open_instance("target");
-			xo_emit("{V:target/%-36s} {V:portal/%-16s} ",
+			xo_emit("{V:name/%-36s} {V:portal/%-16s} ",
 				conf->isc_target, conf->isc_target_addr);
 			
 			if (state->iss_reason[0] != '\0') {
