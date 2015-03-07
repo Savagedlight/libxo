@@ -71,10 +71,10 @@ print_periphs(int session_id)
 	int skip_bus, skip_device;
 
 	if ((fd = open(XPT_DEVICE, O_RDWR)) == -1) {
-		warn("couldn't open %s", XPT_DEVICE);
+		xo_warn("couldn't open %s", XPT_DEVICE);
 		return;
 	}
-
+		
 	/*
 	 * First, iterate over the whole list to find the bus.
 	 */
@@ -90,7 +90,7 @@ print_periphs(int session_id)
 	ccb.cdm.match_buf_len = bufsize;
 	ccb.cdm.matches = (struct dev_match_result *)malloc(bufsize);
 	if (ccb.cdm.matches == NULL) {
-		warnx("can't malloc memory for matches");
+		xo_warnx("can't malloc memory for matches");
 		close(fd);
 		return;
 	}
@@ -113,14 +113,14 @@ print_periphs(int session_id)
 	 */
 	do {
 		if (ioctl(fd, CAMIOCOMMAND, &ccb) == -1) {
-			warn("error sending CAMIOCOMMAND ioctl");
+			xo_warn("error sending CAMIOCOMMAND ioctl");
 			break;
 		}
 
 		if ((ccb.ccb_h.status != CAM_REQ_CMP)
 		 || ((ccb.cdm.status != CAM_DEV_MATCH_LAST)
 		    && (ccb.cdm.status != CAM_DEV_MATCH_MORE))) {
-			warnx("got CAM error %#x, CDM error %d\n",
+			xo_warnx("got CAM error %#x, CDM error %d\n",
 			      ccb.ccb_h.status, ccb.cdm.status);
 			break;
 		}
@@ -172,7 +172,7 @@ print_periphs(int session_id)
 
 				xo_open_instance("lun");	
 				xo_emit("{e:id/%d}", lunNo);
-				xo_emit("{V:device/%s%d} ",
+				xo_emit("{Vq:device/%s%d} ",
 					periph_result->periph_name,
 					periph_result->unit_number);
 				xo_close_instance("lun");
