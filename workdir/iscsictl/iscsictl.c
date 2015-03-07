@@ -535,7 +535,7 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			 *  display outputs. Only include it for
 			 *  non-display output. 
 			 */
-			xo_emit("{Ve:id/%u}\n",
+			xo_emit("{Ve:id/%u\n}",
 				state->iss_id);
 			xo_emit("{L:/%-18s}{V:type/%s}\n",
 				"Session type:", (conf->isc_discovery ? "Discovery" : "Normal"));
@@ -565,7 +565,7 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			xo_emit("{L:/%-18s}{V:dataSegmentLen/%d}\n",
 				"DataSegmentLen:", state->iss_max_data_segment_length);
 			xo_emit("{L:/%-18s}{V:immediateData/%s}\n",
-				"Immediate data:", state->iss_immediate_data ? "Yes" : "No");
+				"ImmediateData:", state->iss_immediate_data ? "Yes" : "No");
 			xo_emit("{L:/%-18s}{V:iSER/%s}\n",
 				"iSER (RDMA):", conf->isc_iser ? "Yes" : "No");
 			
@@ -591,7 +591,7 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			conf = &state->iss_conf;
 
 			xo_open_instance("target");
-			xo_emit("{V:target/%-36s} {V:portal/%-16s}",
+			xo_emit("{V:target/%-36s} {V:portal/%-16s} ",
 				conf->isc_target, conf->isc_target_addr);
 			
 			if (state->iss_reason[0] != '\0') {
