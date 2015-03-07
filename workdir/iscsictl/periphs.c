@@ -58,6 +58,7 @@ __FBSDID("$FreeBSD: head/usr.bin/iscsictl/periphs.c 264405 2014-04-13 09:31:22Z 
 #include <cam/scsi/smp_all.h>
 #include <cam/ata/ata_all.h>
 #include <camlib.h>
+#include <libxo/xo.h>
 
 #include "iscsictl.h"
 
@@ -105,6 +106,7 @@ print_periphs(int session_id)
 	skip_bus = 1;
 	skip_device = 1;
 
+	xo_open_list("lun");
 	/*
 	 * We do the ioctl multiple times if necessary, in case there are
 	 * more than 100 nodes in the EDT.
@@ -122,6 +124,8 @@ print_periphs(int session_id)
 			      ccb.ccb_h.status, ccb.cdm.status);
 			break;
 		}
+		
+		int lunNo=0;
 
 		for (i = 0; i < ccb.cdm.num_matches; i++) {
 			switch (ccb.cdm.matches[i].type) {
@@ -166,9 +170,13 @@ print_periphs(int session_id)
 				if (strcmp(periph_result->periph_name, "pass") == 0)
 					continue;
 
-				fprintf(stdout, "%s%d ",
+				xo_open_instance("lun");	
+				xo_emit("{e:id/%d}", lunNo);
+				xo_emit("{V:device/%s%d}",
 					periph_result->periph_name,
 					periph_result->unit_number);
+				xo_close_instance("lun");
+				lunNo++;
 
 				break;
 			}
@@ -180,7 +188,8 @@ print_periphs(int session_id)
 
 	} while ((ccb.ccb_h.status == CAM_REQ_CMP)
 		&& (ccb.cdm.status == CAM_DEV_MATCH_MORE));
-
+	
+	xo_close_list("lun");
 	close(fd);
 }
 
