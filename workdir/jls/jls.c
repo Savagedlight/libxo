@@ -85,7 +85,7 @@ main(int argc, char **argv)
 	int c, i, jflags, jid, lastjid, pflags, spc;
 
 	argc = xo_parse_args(argc, argv);
-	xo_open_container("jail-information");
+	xo_open_container("jls");
 	
 	jname = NULL;
 	pflags = jflags = jid = 0;
@@ -589,7 +589,7 @@ quoted_print(char *str)
 		}
 	}
 	
-	if (qc && !resize_buffer) {
+	if (qc) {
 		char tmp[2] = { (char)qc, 0 };
 		if (strlcat(buf, tmp, buflen) >= buflen) {
 			/* TODO: Find appropriate error code */
