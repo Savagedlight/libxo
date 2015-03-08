@@ -46,6 +46,8 @@ __FBSDID("$FreeBSD: head/usr.sbin/jls/jls.c 279123 2015-02-22 00:00:10Z jamie $"
 #include <string.h>
 #include <unistd.h>
 
+#include <libxo/xo.h>
+
 #define	JP_USER		0x01000000
 #define	JP_OPT		0x02000000
 
