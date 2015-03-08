@@ -11,7 +11,7 @@ diff -dur /usr/src/usr.sbin/jls/Makefile ./Makefile
  CFLAGS+= -DINET6
 diff -dur /usr/src/usr.sbin/jls/jls.c ./jls.c
 --- /usr/src/usr.sbin/jls/jls.c	2015-03-06 08:58:00.029804000 +0100
-+++ ./jls.c	2015-03-08 17:17:00.000000000 +0100
++++ ./jls.c	2015-03-08 17:58:59.000000000 +0100
 @@ -41,11 +41,14 @@
  #include <errno.h>
  #include <jail.h>
@@ -32,7 +32,7 @@ diff -dur /usr/src/usr.sbin/jls/jls.c ./jls.c
  	int c, i, jflags, jid, lastjid, pflags, spc;
  
 +	argc = xo_parse_args(argc, argv);
-+	xo_open_container("jail-information");
++	xo_open_container("jls");
 +	
  	jname = NULL;
  	pflags = jflags = jid = 0;
@@ -409,7 +409,7 @@ diff -dur /usr/src/usr.sbin/jls/jls.c ./jls.c
 -	if (qc)
 -		putchar(qc);
 +	
-+	if (qc && !resize_buffer) {
++	if (qc) {
 +		char tmp[2] = { (char)qc, 0 };
 +		if (strlcat(buf, tmp, buflen) >= buflen) {
 +			/* TODO: Find appropriate error code */
