@@ -41,6 +41,7 @@ __FBSDID("$FreeBSD: head/usr.sbin/jls/jls.c 279123 2015-02-22 00:00:10Z jamie $"
 #include <errno.h>
 #include <jail.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -83,6 +84,9 @@ main(int argc, char **argv)
 	char *dot, *ep, *jname, *pname;
 	int c, i, jflags, jid, lastjid, pflags, spc;
 
+	argc = xo_parse_args(argc, argv);
+	xo_open_container("jail-information");
+	
 	jname = NULL;
 	pflags = jflags = jid = 0;
 	while ((c = getopt(argc, argv, "adj:hNnqsv")) >= 0)
@@ -199,30 +203,32 @@ main(int argc, char **argv)
 
 	/* Print a header line if requested. */
 	if (pflags & PRINT_VERBOSE)
-		printf("   JID  Hostname                      Path\n"
+		xo_emit("{T:   JID  Hostname                      Path\n"
 		       "        Name                          State\n"
 		       "        CPUSetID\n"
-		       "        IP Address(es)\n");
+		       "        IP Address(es)\n}");
 	else if (pflags & PRINT_DEFAULT)
 		if (pflags & PRINT_JAIL_NAME)
-			printf(" JID             IP Address      "
-			    "Hostname                      Path\n");
+			xo_emit("{T: JID             IP Address      "
+			    "Hostname                      Path\n}");			
 		else
-			printf("   JID  IP Address      "
-			    "Hostname                      Path\n");
+			xo_emit("{T:   JID  IP Address      "
+			    "Hostname                      Path\n}");
 	else if (pflags & PRINT_HEADER) {
 		for (i = spc = 0; i < nparams; i++)
 			if (params[i].jp_flags & JP_USER) {
 				if (spc)
-					putchar(' ');
+					xo_emit("{Pw:}");
 				else
 					spc = 1;
-				fputs(params[i].jp_name, stdout);
+				xo_emit("{T:/%s}",params[i].jp_name); 
+				
 			}
-		putchar('\n');
+		xo_emit("{Pd:\n}");
 	}
 
 	/* Fetch the jail(s) and print the paramters. */
+	xo_open_list("jail");
 	if (jid != 0 || jname != NULL) {
 		if (print_jail(pflags, jflags) < 0)
 			xo_errx(1, "%s", jail_errmsg);
@@ -233,7 +239,9 @@ main(int argc, char **argv)
 		if (errno != 0 && errno != ENOENT)
 			xo_errx(1, "%s", jail_errmsg);
 	}
-
+	xo_close_list("jail");
+	xo_close_container("jail-information");
+	xo_finish();
 	return (0);
 }
 
@@ -368,14 +376,18 @@ print_jail(int pflags, int jflags)
 	char **param_values;
 	int i, ai, jid, count, n, spc;
 	char ipbuf[INET6_ADDRSTRLEN];
-
+	
+	xo_open_instance("jail");
 	jid = jailparam_get(params, nparams, jflags);
 	if (jid < 0)
 		return jid;
-	if (pflags & PRINT_VERBOSE) {
-		printf("%6d  %-29.29s %.74s\n"
-		       "%6s  %-29.29s %.74s\n"
-		       "%6s  %-6d\n",
+	if (pflags & PRINT_VERBOSE) {		 
+		 /*
+		  * Update this if fields of verbose output changes.
+		  */
+		xo_emit("{V:jid/%6d/%d}  {V:hostname/%-29.29s/%s} {V:path/%.74s/%s}\n"
+		       "{Pd:/%6s/%s}  {V:name/%-29.29s/%s} {V:state/%.74s/%s}\n"
+		       "{Pd:/%6s/%s}  {V:/%-6d/%d}\n",
 		    *(int *)params[0].jp_value,
 		    (char *)params[1].jp_value,
 		    (char *)params[2].jp_value,
@@ -384,22 +396,26 @@ print_jail(int pflags, int jflags)
 		    *(int *)params[4].jp_value ? "DYING" : "ACTIVE",
 		    "",
 		    *(int *)params[5].jp_value);
+			
 		n = 6;
 #ifdef INET
 		if (ip4_ok && !strcmp(params[n].jp_name, "ip4.addr")) {
+			xo_open_list("ipv4addr");
 			count = params[n].jp_valuelen / sizeof(struct in_addr);
 			for (ai = 0; ai < count; ai++)
 				if (inet_ntop(AF_INET,
 				    &((struct in_addr *)params[n].jp_value)[ai],
 				    ipbuf, sizeof(ipbuf)) == NULL)
 					xo_err(1, "inet_ntop");
-				else
-					printf("%6s  %-15.15s\n", "", ipbuf);
+				else 
+					xo_emit("{D:/%6s}  {Vl:/%-15.15s/%s}\n", "", ipbuf);
 			n++;
+			xo_close_list("ipv4addr");
 		}
 #endif
 #ifdef INET6
 		if (ip6_ok && !strcmp(params[n].jp_name, "ip6.addr")) {
+			xo_open_list("ipv6addr");
 			count = params[n].jp_valuelen / sizeof(struct in6_addr);
 			for (ai = 0; ai < count; ai++)
 				if (inet_ntop(AF_INET6,
@@ -408,16 +424,20 @@ print_jail(int pflags, int jflags)
 				    ipbuf, sizeof(ipbuf)) == NULL)
 					xo_err(1, "inet_ntop");
 				else
-					printf("%6s  %s\n", "", ipbuf);
+					xo_emit("{D:/%6s}  {V:addr/%s}\n", "", ipbuf);
 			n++;
+			xo_close_list("ipv6addr");			
 		}
 #endif
 	} else if (pflags & PRINT_DEFAULT) {
 		if (pflags & PRINT_JAIL_NAME)
-			printf(" %-15s ", (char *)params[0].jp_value);
-		else
-			printf("%6d  ", *(int *)params[0].jp_value);
-		printf("%-15.15s %-29.29s %.74s\n",
+			xo_emit(" {Vk:name/%-15.15s/%s} ", (char *)params[0].jp_value);
+		else 
+			xo_emit("{Vk:id/%6d/%d}  ", 
+				*(int *)params[0].jp_value);
+				
+		xo_emit("{V:primaryIp/%-15.15s/%s} "
+		       "{V:hostname/%-29.29s/%s} {V:path/%.74s/%s}\n",
 #ifdef INET
 		    (!ip4_ok || params[1].jp_valuelen == 0) ? "-"
 		    : inet_ntoa(*(struct in_addr *)params[1].jp_value),
@@ -428,6 +448,7 @@ print_jail(int pflags, int jflags)
 		    (char *)params[1].jp_value,
 		    (char *)params[2].jp_value);
 #endif
+		
 	} else {
 		param_values = alloca(nparams * sizeof(*param_values));
 		for (i = 0; i < nparams; i++) {
@@ -437,7 +458,10 @@ print_jail(int pflags, int jflags)
 			if (param_values[i] == NULL)
 				xo_errx(1, "%s", jail_errmsg);
 		}
+		
+		xo_open_list("parameter");		
 		for (i = spc = 0; i < nparams; i++) {
+			xo_open_instance("parameter");
 			if (!(params[i].jp_flags & JP_USER))
 				continue;
 			if ((pflags & PRINT_SKIP) &&
@@ -448,7 +472,7 @@ print_jail(int pflags, int jflags)
 			      JAIL_SYS_NEW)))
 				continue;
 			if (spc)
-				putchar(' ');
+				xo_emit("{P: }");
 			else
 				spc = 1;
 			if (pflags & PRINT_NAMEVAL) {
@@ -458,33 +482,39 @@ print_jail(int pflags, int jflags)
 				 */
 				if (params[i].jp_flags &
 				    (JP_BOOL | JP_NOBOOL)) {
-					if (*(int *)params[i].jp_value)
-						printf("%s", params[i].jp_name);
+					if (*(int *)params[i].jp_value)						
+						xo_emit("{V:name/%s}", params[i].jp_name);
+						
 					else {
 						nname = (params[i].jp_flags &
 						    JP_NOBOOL) ?
 						    nononame(params[i].jp_name)
 						    : noname(params[i].jp_name);
-						printf("%s", nname);
+						xo_emit("{V:name/%s}", nname);
 						free(nname);
 					}
+					xo_close_instance("parameter");
 					continue;
 				}
-				printf("%s=", params[i].jp_name);
+				xo_emit("{V:name/%s}=", params[i].jp_name);
 			}
 			if (params[i].jp_valuelen == 0) {
 				if (pflags & PRINT_QUOTED)
-					printf("\"\"");
+					xo_emit("\"\"");
 				else if (!(pflags & PRINT_NAMEVAL))
-					putchar('-');
+					xo_emit("-");
 			} else
 				quoted_print(param_values[i]);
+			xo_close_instance("parameter");
 		}
-		putchar('\n');
+		xo_close_list("parameters");
+		xo_emit("\n");
 		for (i = 0; i < nparams; i++)
 			if (params[i].jp_flags & JP_USER)
 				free(param_values[i]);
 	}
+	
+	xo_close_instance("jail");
 	return (jid);
 }
 
@@ -493,28 +523,81 @@ quoted_print(char *str)
 {
 	int c, qc;
 	char *p = str;
-
+	
 	/* An empty string needs quoting. */
 	if (!*p) {
-		fputs("\"\"", stdout);
+		xo_emit("{Vd:value/%s}{Ve:value/%s}", "\"\"", "");
 		return;
 	}
 
+	/* 
+	 * Buffer for building cstring to be passed to LibXo 
+	 *
+	 * Buffer length is calculated by assuming worst-case 
+	 * scenario:
+	 * Every character is escaped: 2x input length
+	 * Two characters for surrounding quotes: +2
+	 * Terminating nil character: +1
+	 */
+	size_t buflen = (strlen(str)*2)+3;
+	_Bool buffer_initialized = false;
+	char *buf = (char*)malloc(buflen);
+	if (buf == NULL) {
+		xo_err(1, "malloc");
+	}
+	 
 	/*
 	 * The value will be surrounded by quotes if it contains spaces
 	 * or quotes.
 	 */
-	qc = strchr(p, '\'') ? '"'
-	    : strchr(p, '"') ? '\''
-	    : strchr(p, ' ') || strchr(p, '\t') ? '"'
-	    : 0;
-	if (qc)
-		putchar(qc);
-	while ((c = *p++)) {
-		if (c == '\\' || c == qc)
-			putchar('\\');
-		putchar(c);
+	qc = strchr(p, '/') ? '"'
+		: strchr(p, '"') ? '\''
+		: strchr(p, ' ') || strchr(p, '\t') ? '"'
+		: 0;
+	if (qc) {
+		/* 
+		 * We know the buffer is large enough to hold this,
+		 * so we don't need to test if truncation happened.
+		 */				 
+		char tmp[2] = { (char)qc, 0 };
+		strlcpy(buf, tmp, buflen);
+		buffer_initialized = true;
 	}
-	if (qc)
-		putchar(qc);
+	while ((c = *p++)) {
+		if (c == '\\' || c == qc) {
+			if (!buffer_initialized) {
+				strlcpy(buf, "\\", buflen);
+				buffer_initialized = true;
+			}					
+			else if (strlcat(buf, "\\", buflen) >= buflen) {
+				/* TODO: Find appropriate error code */
+				xo_err(1, "buffer full");
+				break;
+			}					
+		}
+		
+		char tmp[2] = { c, 0 };
+		
+		if (!buffer_initialized) {
+			strlcpy(buf, tmp, buflen);
+			buffer_initialized = true;
+		}
+		else if (strlcat(buf, tmp, buflen) >= buflen) {
+			/* TODO: Find appropriate error code */
+			xo_err(1, "buffer full");
+			break;
+		}
+	}
+	
+	if (qc && !resize_buffer) {
+		char tmp[2] = { (char)qc, 0 };
+		if (strlcat(buf, tmp, buflen) >= buflen) {
+			/* TODO: Find appropriate error code */
+			xo_err(1, "buffer full");
+		}
+	}
+
+	xo_emit("{Vd:value/%s}{Ve:value/%s}", buf, str);
+	free(buf);
+	buf = 0;
 }
