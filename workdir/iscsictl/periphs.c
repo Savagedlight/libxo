@@ -125,7 +125,7 @@ print_periphs(int session_id)
 			break;
 		}
 		
-		int lunNo=0;
+		int lun_no=0;
 
 		for (i = 0; i < ccb.cdm.num_matches; i++) {
 			switch (ccb.cdm.matches[i].type) {
@@ -176,7 +176,7 @@ print_periphs(int session_id)
 					periph_result->periph_name,
 					periph_result->unit_number);
 				xo_close_instance("lun");
-				lunNo++;
+				lun_no++;
 
 				break;
 			}

@@ -667,7 +667,7 @@ main(int argc, char **argv)
 	struct target *targ;
 	
 	argc = xo_parse_args(argc, argv);
-	xo_open_container("iscsi-information");
+	xo_open_container("iscsictl");
 	
 	while ((ch = getopt(argc, argv, "AMRLac:d:i:n:p:t:u:s:v")) != -1) {
 		switch (ch) {
@@ -931,7 +931,7 @@ main(int argc, char **argv)
 	if (failed > 0)
 		return (1);
 		
-	xo_close_container("iscsi-information");
+	xo_close_container("iscsictl");
 	xo_finish();
 	return (0);
 }
