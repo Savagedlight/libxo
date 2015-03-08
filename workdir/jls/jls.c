@@ -121,7 +121,7 @@ main(int argc, char **argv)
 			    PRINT_VERBOSE;
 			break;
 		default:
-			errx(1, "usage: jls [-dhNnqv] [-j jail] [param ...]");
+			xo_errx(1, "usage: jls [-dhNnqv] [-j jail] [param ...]");
 		}
 
 #ifdef INET6
@@ -225,13 +225,13 @@ main(int argc, char **argv)
 	/* Fetch the jail(s) and print the paramters. */
 	if (jid != 0 || jname != NULL) {
 		if (print_jail(pflags, jflags) < 0)
-			errx(1, "%s", jail_errmsg);
+			xo_errx(1, "%s", jail_errmsg);
 	} else {
 		for (lastjid = 0;
 		     (lastjid = print_jail(pflags, jflags)) >= 0; )
 			;
 		if (errno != 0 && errno != ENOENT)
-			errx(1, "%s", jail_errmsg);
+			xo_errx(1, "%s", jail_errmsg);
 	}
 
 	return (0);
@@ -250,7 +250,7 @@ add_param(const char *name, void *value, size_t valuelen,
 	if (!strcmp(name, "all")) {
 		tnparams = jailparam_all(&tparams);
 		if (tnparams < 0)
-			errx(1, "%s", jail_errmsg);
+			xo_errx(1, "%s", jail_errmsg);
 		qsort(tparams, (size_t)tnparams, sizeof(struct jailparam),
 		    sort_param);
 		for (i = 0; i < tnparams; i++)
@@ -265,7 +265,7 @@ add_param(const char *name, void *value, size_t valuelen,
 		if (!strcmp(name, params[i].jp_name)) {
 			if (value != NULL && jailparam_import_raw(params + i,
 			    value, valuelen) < 0)
-				errx(1, "%s", jail_errmsg);
+				xo_errx(1, "%s", jail_errmsg);
 			params[i].jp_flags |= flags;
 			if (source != NULL)
 				jailparam_free(source, 1);
@@ -278,14 +278,14 @@ add_param(const char *name, void *value, size_t valuelen,
 		params = malloc(paramlistsize * sizeof(*params));
 		param_parent = malloc(paramlistsize * sizeof(*param_parent));
 		if (params == NULL || param_parent == NULL)
-			err(1, "malloc");
+			xo_err(1, "malloc");
 	} else if (nparams >= paramlistsize) {
 		paramlistsize *= 2;
 		params = realloc(params, paramlistsize * sizeof(*params));
 		param_parent = realloc(param_parent,
 		    paramlistsize * sizeof(*param_parent));
 		if (params == NULL || param_parent == NULL)
-			err(1, "realloc");
+			xo_err(1, "realloc");
 	}
 
 	/* Look up the parameter. */
@@ -303,7 +303,7 @@ add_param(const char *name, void *value, size_t valuelen,
 			nparams--;
 			return (-1);
 		}
-		errx(1, "%s", jail_errmsg);
+		xo_errx(1, "%s", jail_errmsg);
 	}
 	param->jp_flags = flags;
 	return param - params;
@@ -334,7 +334,7 @@ noname(const char *name)
 
 	nname = malloc(strlen(name) + 3);
 	if (nname == NULL)
-		err(1, "malloc");
+		xo_err(1, "malloc");
 	p = strrchr(name, '.');
 	if (p != NULL)
 		sprintf(nname, "%.*s.no%s", (int)(p - name), name, p + 1);
@@ -353,7 +353,7 @@ nononame(const char *name)
 		return NULL;
 	nname = malloc(strlen(name) - 1);
 	if (nname == NULL)
-		err(1, "malloc");
+		xo_err(1, "malloc");
 	if (p != NULL)
 		sprintf(nname, "%.*s.%s", (int)(p - name), name, p + 3);
 	else
@@ -392,7 +392,7 @@ print_jail(int pflags, int jflags)
 				if (inet_ntop(AF_INET,
 				    &((struct in_addr *)params[n].jp_value)[ai],
 				    ipbuf, sizeof(ipbuf)) == NULL)
-					err(1, "inet_ntop");
+					xo_err(1, "inet_ntop");
 				else
 					printf("%6s  %-15.15s\n", "", ipbuf);
 			n++;
@@ -406,7 +406,7 @@ print_jail(int pflags, int jflags)
 				    &((struct in6_addr *)
 					params[n].jp_value)[ai],
 				    ipbuf, sizeof(ipbuf)) == NULL)
-					err(1, "inet_ntop");
+					xo_err(1, "inet_ntop");
 				else
 					printf("%6s  %s\n", "", ipbuf);
 			n++;
@@ -435,7 +435,7 @@ print_jail(int pflags, int jflags)
 				continue;
 			param_values[i] = jailparam_export(params + i);
 			if (param_values[i] == NULL)
-				errx(1, "%s", jail_errmsg);
+				xo_errx(1, "%s", jail_errmsg);
 		}
 		for (i = spc = 0; i < nparams; i++) {
 			if (!(params[i].jp_flags & JP_USER))
