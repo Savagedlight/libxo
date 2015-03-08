@@ -3,15 +3,11 @@
 PROG=		iscsictl
 SRCS=		iscsictl.c periphs.c parse.y token.l y.tab.h
 CFLAGS+=	-I${.CURDIR}
-# TEMPORARY:
-CFLAGS+=   -I/usr/src/sys/dev/iscsi
-CFLAGS+=   -g
-# Original:
-#CFLAGS+=	-I${.CURDIR}/../../sys/dev/iscsi
+CFLAGS+=	-I${.CURDIR}/../../sys/dev/iscsi
 MAN=		iscsi.conf.5 iscsictl.8
 
 LIBADD=		cam util
-LDADD=      -lxo
+LDADD=		-lxo
 
 YFLAGS+=	-v
 LFLAGS+=	-i
