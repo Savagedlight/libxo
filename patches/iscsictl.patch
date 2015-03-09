@@ -702,7 +702,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  }
 diff -dur /usr/src/usr.bin/iscsictl/parse.y ./parse.y
 --- /usr/src/usr.bin/iscsictl/parse.y	2015-03-06 08:54:51.881277000 +0100
-+++ ./parse.y	2015-03-09 16:44:48.000000000 +0100
++++ ./parse.y	2015-03-09 17:16:52.000000000 +0100
 @@ -34,12 +34,13 @@
  #include <sys/types.h>
  #include <sys/stat.h>
@@ -938,6 +938,15 @@ diff -dur /usr/src/usr.bin/iscsictl/parse.y ./parse.y
  	}
  
  	/*
+@@ -328,7 +329,7 @@
+ 
+ 	yyin = fopen(path, "r");
+ 	if (yyin == NULL)
+-		err(1, "unable to open configuration file %s", path);
++		xo_err(1, "unable to open configuration file %s", path);
+ 	check_perms(path);
+ 	lineno = 1;
+ 	yyrestart(yyin);
 diff -dur /usr/src/usr.bin/iscsictl/periphs.c ./periphs.c
 --- /usr/src/usr.bin/iscsictl/periphs.c	2015-03-06 08:54:51.814319000 +0100
 +++ ./periphs.c	2015-03-09 16:45:03.000000000 +0100

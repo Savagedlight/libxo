@@ -329,7 +329,7 @@ conf_new_from_file(const char *path)
 
 	yyin = fopen(path, "r");
 	if (yyin == NULL)
-		err(1, "unable to open configuration file %s", path);
+		xo_err(1, "unable to open configuration file %s", path);
 	check_perms(path);
 	lineno = 1;
 	yyrestart(yyin);
