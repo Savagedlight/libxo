@@ -36,7 +36,6 @@ __FBSDID("$FreeBSD: head/usr.bin/iscsictl/iscsictl.c 278232 2015-02-05 06:37:59Z
 #include <sys/linker.h>
 #include <assert.h>
 #include <ctype.h>
-#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -594,7 +593,7 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			conf = &state->iss_conf;
 
 			xo_open_instance("target");
-			xo_emit("{V:name/%-36s} {V:portal/%-16s} ",
+			xo_emit("{V:name/%-36s/%s} {V:portal/%-16s/%s} ",
 				conf->isc_target, conf->isc_target_addr);
 			
 			if (state->iss_reason[0] != '\0') {

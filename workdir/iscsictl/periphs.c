@@ -46,7 +46,6 @@ __FBSDID("$FreeBSD: head/usr.bin/iscsictl/periphs.c 264405 2014-04-13 09:31:22Z 
 #include <inttypes.h>
 #include <limits.h>
 #include <fcntl.h>
-#include <err.h>
 
 #include <cam/cam.h>
 #include <cam/cam_debug.h>
@@ -105,7 +104,8 @@ print_periphs(int session_id)
 
 	skip_bus = 1;
 	skip_device = 1;
-
+	
+	int lun_no=0;
 	xo_open_list("lun");
 	/*
 	 * We do the ioctl multiple times if necessary, in case there are
@@ -125,7 +125,7 @@ print_periphs(int session_id)
 			break;
 		}
 		
-		int lun_no=0;
+		
 
 		for (i = 0; i < ccb.cdm.num_matches; i++) {
 			switch (ccb.cdm.matches[i].type) {
@@ -171,7 +171,7 @@ print_periphs(int session_id)
 					continue;
 
 				xo_open_instance("lun");	
-				xo_emit("{e:id/%d}", lunNo);
+				xo_emit("{e:id/%d}", lun_no);
 				xo_emit("{Vq:device/%s%d} ",
 					periph_result->periph_name,
 					periph_result->unit_number);
