@@ -105,7 +105,10 @@ print_periphs(int session_id)
 	skip_bus = 1;
 	skip_device = 1;
 	
-	int lun_no=0;
+	path_id_t path_id;
+	target_id_t target_id;
+	
+	xo_open_container("bus");
 	xo_open_list("lun");
 	/*
 	 * We do the ioctl multiple times if necessary, in case there are
@@ -125,8 +128,6 @@ print_periphs(int session_id)
 			break;
 		}
 		
-		
-
 		for (i = 0; i < ccb.cdm.num_matches; i++) {
 			switch (ccb.cdm.matches[i].type) {
 			case DEV_MATCH_BUS: {
@@ -145,7 +146,6 @@ print_periphs(int session_id)
 					//printf("wrong unit, %d != %d\n", bus_result->unit_number, session_id);
 					continue;
 				}
-
 				skip_bus = 0;
 			}
 			case DEV_MATCH_DEVICE: {
@@ -170,14 +170,15 @@ print_periphs(int session_id)
 				if (strcmp(periph_result->periph_name, "pass") == 0)
 					continue;
 
-				xo_open_instance("lun");	
-				xo_emit("{e:id/%d}", lun_no);
+				path_id = periph_result->path_id;
+				target_id = periph_result->target_id;
+				
+				xo_open_instance("lun");
+				xo_emit("{e:id/%d}", periph_result->target_lun);
 				xo_emit("{Vq:device/%s%d} ",
 					periph_result->periph_name,
 					periph_result->unit_number);
 				xo_close_instance("lun");
-				lun_no++;
-
 				break;
 			}
 			default:
@@ -188,8 +189,12 @@ print_periphs(int session_id)
 
 	} while ((ccb.ccb_h.status == CAM_REQ_CMP)
 		&& (ccb.cdm.status == CAM_DEV_MATCH_MORE));
-	
 	xo_close_list("lun");
+	xo_emit("{e:path/%d}{e:target/%d}",
+		path_id,
+		target_id);
+	xo_close_container("bus");
+	
 	close(fd);
 }
 

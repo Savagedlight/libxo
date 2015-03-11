@@ -11,7 +11,7 @@ diff -dur /usr/src/usr.bin/iscsictl/Makefile ./Makefile
  LFLAGS+=	-i
 diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
 --- /usr/src/usr.bin/iscsictl/iscsictl.c	2015-03-06 08:54:52.015784000 +0100
-+++ ./iscsictl.c	2015-03-09 16:44:51.000000000 +0100
++++ ./iscsictl.c	2015-03-11 15:40:31.000000000 +0100
 @@ -36,7 +36,6 @@
  #include <sys/linker.h>
  #include <assert.h>
@@ -245,7 +245,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  
  		memset(&isl, 0, sizeof(isl));
  		isl.isl_nentries = nentries;
-@@ -476,78 +476,143 @@
+@@ -476,78 +476,133 @@
  		break;
  	}
  	if (error != 0) {
@@ -259,7 +259,25 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  		for (i = 0; i < isl.isl_nentries; i++) {
  			state = &states[i];
  			conf = &state->iss_conf;
--
++			
++			xo_open_instance("target");
++			
++			/* 
++			 * Display-only modifier as this information
++			 * is also present within the 'session' container
++			 */
++			xo_emit("{Ld:/%-18s}{Vd:sessionId/%u}\n",
++				"Session ID:", state->iss_id);
++			
++			xo_open_container("initiator");
++			xo_emit("{L:/%-18s}{V:name/%s}\n",
++				"Initiator name:", conf->isc_initiator);
++			xo_emit("{L:/%-18s}{V:portal/%s}\n",
++				"Initiator portal:", conf->isc_initiator_addr);
++			xo_emit("{L:/%-18s}{V:alias/%s}\n",
++				"Initiator alias:", conf->isc_initiator_alias);
++			xo_close_container("initiator");
+ 
 -			printf("Session ID:       %u\n", state->iss_id);
 -			printf("Initiator name:   %s\n", conf->isc_initiator);
 -			printf("Initiator portal: %s\n",
@@ -297,28 +315,6 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
 -			    conf->isc_iser ? "Yes" : "No");
 -			printf("Offload driver:   %s\n", state->iss_offload);
 -			printf("Device nodes:     ");
-+			
-+			xo_open_instance("target");
-+			
-+			/* 
-+			 * Display-only modifier as this information
-+			 * is also present within the 'session' container
-+			 */
-+			xo_emit("{Ld:/%-18s}{Vd:sessionId/%u}\n",
-+				"Session ID:", state->iss_id);
-+			
-+			/* Start Container: initiator */
-+			xo_open_container("initiator");
-+			xo_emit("{L:/%-18s}{V:name/%s}\n",
-+				"Initiator name:", conf->isc_initiator);
-+			xo_emit("{L:/%-18s}{V:portal/%s}\n",
-+				"Initiator portal:", conf->isc_initiator_addr);
-+			xo_emit("{L:/%-18s}{V:alias/%s}\n",
-+				"Initiator alias:", conf->isc_initiator_alias);
-+			xo_close_container("initiator");
-+			/* End Container: initiator */
-+			
-+			/* Start Container: target */
 +			xo_open_container("target");
 +			xo_emit("{L:/%-18s}{V:name/%s}\n",
 +				"Target name:", conf->isc_target);
@@ -327,9 +323,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
 +			xo_emit("{L:/%-18s}{V:alias/%s}\n",
 +				"Target alias:", state->iss_target_alias);
 +			xo_close_container("target");
-+			/* End Container: target */
-+			
-+			/* Start Container: auth */
++
 +			xo_open_container("auth");
 +			xo_emit("{L:/%-18s}{V:user/%s}\n",
 +				"User:", conf->isc_user);
@@ -340,9 +334,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
 +			xo_emit("{L:/%-18s}{V:mutualSecret/%s}\n",
 +				"Mutual secret:", conf->isc_mutual_secret);
 +			xo_close_container("auth");
-+			/* End Container: auth */
-+			
-+			/* Start Container: session */
++
 +			xo_open_container("session");
 +			/*  
 +			 * Session ID is already printed for 
@@ -358,12 +350,10 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
 +				(state->iss_connected ?
 +			    "Connected" : "Disconnected"));
 +			xo_close_container("session");
-+			/* End Container: session */
-+			
++
 +			xo_emit("{L:/%-18s}{V:failureReason/%s}\n",
 +				"Failure reason:", state->iss_reason);
 +			
-+			/* Start Container: digest */
 +			xo_open_container("digest");
 +			xo_emit("{L:/%-18s}{V:header/%s}\n",
 +				"Header digest:", 
@@ -374,7 +364,6 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
 +				(state->iss_data_digest == ISCSI_DIGEST_CRC32C ?
 +			    "CRC32C" : "None"));
 +			xo_close_container("digest");
-+			/* End Container: digest */
 +			
 +			xo_emit("{L:/%-18s}{V:dataSegmentLen/%d}\n",
 +				"DataSegmentLen:", state->iss_max_data_segment_length);
@@ -439,7 +428,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  		}
  	}
  
-@@ -582,7 +647,7 @@
+@@ -582,7 +637,7 @@
  
  	c = strdup(s);
  	if (c == NULL)
@@ -448,7 +437,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  	return (c);
  }
  
-@@ -599,7 +664,10 @@
+@@ -599,7 +654,10 @@
  	int failed = 0;
  	struct conf *conf;
  	struct target *targ;
@@ -460,7 +449,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  	while ((ch = getopt(argc, argv, "AMRLac:d:i:n:p:t:u:s:v")) != -1) {
  		switch (ch) {
  		case 'A':
-@@ -626,11 +694,11 @@
+@@ -626,11 +684,11 @@
  		case 'i':
  			session_id = strtol(optarg, &end, 10);
  			if ((size_t)(end - optarg) != strlen(optarg))
@@ -475,7 +464,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  				    UINT_MAX);
  			break;
  		case 'n':
-@@ -663,7 +731,7 @@
+@@ -663,7 +721,7 @@
  	if (Aflag + Mflag + Rflag + Lflag == 0)
  		Lflag = 1;
  	if (Aflag + Mflag + Rflag + Lflag > 1)
@@ -484,7 +473,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  
  	/*
  	 * Note that we ignore unneccessary/inapplicable "-c" flag; so that
-@@ -673,122 +741,122 @@
+@@ -673,122 +731,122 @@
  	if (Aflag != 0) {
  		if (aflag != 0) {
  			if (portal != NULL)
@@ -654,7 +643,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  	}
  
  	iscsi_fd = open(ISCSI_PATH, O_RDWR);
-@@ -801,7 +869,7 @@
+@@ -801,7 +859,7 @@
  			errno = saved_errno;
  	}
  	if (iscsi_fd < 0)
@@ -663,7 +652,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  
  	if (Aflag != 0 && aflag != 0) {
  		conf = conf_new_from_file(conf_path);
-@@ -812,7 +880,7 @@
+@@ -812,7 +870,7 @@
  		conf = conf_new_from_file(conf_path);
  		targ = target_find(conf, nickname);
  		if (targ == NULL)
@@ -672,7 +661,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  			    nickname, conf_path);
  
  		if (Aflag != 0)
-@@ -829,7 +897,7 @@
+@@ -829,7 +887,7 @@
  	} else {
  		if (Aflag != 0 && target != NULL) {
  			if (valid_iscsi_name(target) == false)
@@ -681,7 +670,7 @@ diff -dur /usr/src/usr.bin/iscsictl/iscsictl.c ./iscsictl.c
  		}
  		conf = conf_new();
  		targ = target_new(conf);
-@@ -854,12 +922,15 @@
+@@ -854,12 +912,15 @@
  		else
  			failed += kernel_list(iscsi_fd, targ, vflag);
  	}
@@ -949,7 +938,7 @@ diff -dur /usr/src/usr.bin/iscsictl/parse.y ./parse.y
  	yyrestart(yyin);
 diff -dur /usr/src/usr.bin/iscsictl/periphs.c ./periphs.c
 --- /usr/src/usr.bin/iscsictl/periphs.c	2015-03-06 08:54:51.814319000 +0100
-+++ ./periphs.c	2015-03-09 16:45:03.000000000 +0100
++++ ./periphs.c	2015-03-11 22:37:12.000000000 +0100
 @@ -46,7 +46,6 @@
  #include <inttypes.h>
  #include <limits.h>
@@ -988,13 +977,16 @@ diff -dur /usr/src/usr.bin/iscsictl/periphs.c ./periphs.c
  		close(fd);
  		return;
  	}
-@@ -104,24 +104,28 @@
+@@ -104,25 +104,30 @@
  
  	skip_bus = 1;
  	skip_device = 1;
 -
 +	
-+	int lun_no=0;
++	path_id_t path_id;
++	target_id_t target_id;
++	
++	xo_open_container("bus");
 +	xo_open_list("lun");
  	/*
  	 * We do the ioctl multiple times if necessary, in case there are
@@ -1015,33 +1007,48 @@ diff -dur /usr/src/usr.bin/iscsictl/periphs.c ./periphs.c
  			      ccb.ccb_h.status, ccb.cdm.status);
  			break;
  		}
+-
 +		
-+		
- 
  		for (i = 0; i < ccb.cdm.num_matches; i++) {
  			switch (ccb.cdm.matches[i].type) {
-@@ -166,9 +170,13 @@
+ 			case DEV_MATCH_BUS: {
+@@ -141,7 +146,6 @@
+ 					//printf("wrong unit, %d != %d\n", bus_result->unit_number, session_id);
+ 					continue;
+ 				}
+-
+ 				skip_bus = 0;
+ 			}
+ 			case DEV_MATCH_DEVICE: {
+@@ -166,10 +170,15 @@
  				if (strcmp(periph_result->periph_name, "pass") == 0)
  					continue;
  
 -				fprintf(stdout, "%s%d ",
-+				xo_open_instance("lun");	
-+				xo_emit("{e:id/%d}", lun_no);
++				path_id = periph_result->path_id;
++				target_id = periph_result->target_id;
++				
++				xo_open_instance("lun");
++				xo_emit("{e:id/%d}", periph_result->target_lun);
 +				xo_emit("{Vq:device/%s%d} ",
  					periph_result->periph_name,
  					periph_result->unit_number);
+-
 +				xo_close_instance("lun");
-+				lun_no++;
- 
  				break;
  			}
-@@ -180,7 +188,8 @@
+ 			default:
+@@ -180,7 +189,12 @@
  
  	} while ((ccb.ccb_h.status == CAM_REQ_CMP)
  		&& (ccb.cdm.status == CAM_DEV_MATCH_MORE));
 -
-+	
 +	xo_close_list("lun");
++	xo_emit("{e:path/%d}{e:target/%d}",
++		path_id,
++		target_id);
++	xo_close_container("bus");
++	
  	close(fd);
  }
  

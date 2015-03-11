@@ -495,7 +495,6 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			xo_emit("{Ld:/%-18s}{Vd:sessionId/%u}\n",
 				"Session ID:", state->iss_id);
 			
-			/* Start Container: initiator */
 			xo_open_container("initiator");
 			xo_emit("{L:/%-18s}{V:name/%s}\n",
 				"Initiator name:", conf->isc_initiator);
@@ -504,9 +503,7 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			xo_emit("{L:/%-18s}{V:alias/%s}\n",
 				"Initiator alias:", conf->isc_initiator_alias);
 			xo_close_container("initiator");
-			/* End Container: initiator */
-			
-			/* Start Container: target */
+
 			xo_open_container("target");
 			xo_emit("{L:/%-18s}{V:name/%s}\n",
 				"Target name:", conf->isc_target);
@@ -515,9 +512,7 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			xo_emit("{L:/%-18s}{V:alias/%s}\n",
 				"Target alias:", state->iss_target_alias);
 			xo_close_container("target");
-			/* End Container: target */
-			
-			/* Start Container: auth */
+
 			xo_open_container("auth");
 			xo_emit("{L:/%-18s}{V:user/%s}\n",
 				"User:", conf->isc_user);
@@ -528,9 +523,7 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			xo_emit("{L:/%-18s}{V:mutualSecret/%s}\n",
 				"Mutual secret:", conf->isc_mutual_secret);
 			xo_close_container("auth");
-			/* End Container: auth */
-			
-			/* Start Container: session */
+
 			xo_open_container("session");
 			/*  
 			 * Session ID is already printed for 
@@ -546,12 +539,10 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 				(state->iss_connected ?
 			    "Connected" : "Disconnected"));
 			xo_close_container("session");
-			/* End Container: session */
-			
+
 			xo_emit("{L:/%-18s}{V:failureReason/%s}\n",
 				"Failure reason:", state->iss_reason);
 			
-			/* Start Container: digest */
 			xo_open_container("digest");
 			xo_emit("{L:/%-18s}{V:header/%s}\n",
 				"Header digest:", 
@@ -562,7 +553,6 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 				(state->iss_data_digest == ISCSI_DIGEST_CRC32C ?
 			    "CRC32C" : "None"));
 			xo_close_container("digest");
-			/* End Container: digest */
 			
 			xo_emit("{L:/%-18s}{V:dataSegmentLen/%d}\n",
 				"DataSegmentLen:", state->iss_max_data_segment_length);
