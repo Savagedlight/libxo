@@ -481,18 +481,18 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 	}
 
 	if (verbose != 0) {
-		xo_open_list("target");
+		xo_open_list("session");
 		for (i = 0; i < isl.isl_nentries; i++) {
 			state = &states[i];
 			conf = &state->iss_conf;
 			
-			xo_open_instance("target");
+			xo_open_instance("session");
 			
 			/* 
 			 * Display-only modifier as this information
 			 * is also present within the 'session' container
 			 */
-			xo_emit("{Ld:/%-18s}{Vd:sessionId/%u}\n",
+			xo_emit("{L:/%-18s}{V:sessionId/%u}\n",
 				"Session ID:", state->iss_id);
 			
 			xo_open_container("initiator");
@@ -524,26 +524,14 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 				"Mutual secret:", conf->isc_mutual_secret);
 			xo_close_container("auth");
 
-			xo_open_container("session");
-			/*  
-			 * Session ID is already printed for 
-			 * display outputs. Only include it for
-			 * non-display output. 
-			 */
-			xo_emit("{Ve:id/%u}",
-				state->iss_id);
 			xo_emit("{L:/%-18s}{V:type/%s}\n",
 				"Session type:", (conf->isc_discovery ? "Discovery" : "Normal"));
 			xo_emit("{L:/%-18s}{V:state/%s}\n",
 				"Session state:", 
 				(state->iss_connected ?
 			    "Connected" : "Disconnected"));
-			xo_close_container("session");
-
 			xo_emit("{L:/%-18s}{V:failureReason/%s}\n",
 				"Failure reason:", state->iss_reason);
-			
-			xo_open_container("digest");
 			xo_emit("{L:/%-18s}{V:header/%s}\n",
 				"Header digest:", 
 				(state->iss_header_digest == ISCSI_DIGEST_CRC32C ?
@@ -552,42 +540,39 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 				"Data digest:", 
 				(state->iss_data_digest == ISCSI_DIGEST_CRC32C ?
 			    "CRC32C" : "None"));
-			xo_close_container("digest");
-			
 			xo_emit("{L:/%-18s}{V:dataSegmentLen/%d}\n",
 				"DataSegmentLen:", state->iss_max_data_segment_length);
 			xo_emit("{L:/%-18s}{V:immediateData/%s}\n",
 				"ImmediateData:", state->iss_immediate_data ? "Yes" : "No");
 			xo_emit("{L:/%-18s}{V:iSER/%s}\n",
-				"iSER (RDMA):", conf->isc_iser ? "Yes" : "No");
-			
+				"iSER (RDMA):", conf->isc_iser ? "Yes" : "No");			
 			xo_emit("{L:/%-18s}{V:offloadDriver/%s}\n",
 				"Offload driver:", state->iss_offload);
 			xo_emit("{L:/%-18s}",
 				"Device nodes:");
 			print_periphs(state->iss_id);
 			xo_emit("\n\n");
-			xo_close_instance("target");
+			xo_close_instance("session");
 		}
-		xo_close_list("target");
+		xo_close_list("session");
 	} else {
 		xo_emit("{T:/%-36s} {T:/%-16s} {T:/%s}\n",
 			"Target name", "Target portal", "State");
 		
 		for (i = 0; i < isl.isl_nentries; i++) {
 			if (i == 0) {
-				xo_open_list("target");
+				xo_open_list("session");
 			}
 			
 			state = &states[i];
 			conf = &state->iss_conf;
 
-			xo_open_instance("target");
+			xo_open_instance("session");
 			xo_emit("{V:name/%-36s/%s} {V:portal/%-16s/%s} ",
 				conf->isc_target, conf->isc_target_addr);
 			
 			if (state->iss_reason[0] != '\0') {
-				xo_emit("{V:state/%s", state->iss_reason);
+				xo_emit("{V:state/%s}\n", state->iss_reason);
 			} else {
 				if (conf->isc_discovery) {
 					xo_emit("{V:state}\n", "Discovery");
@@ -599,10 +584,10 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 					xo_emit("{V:state}\n", "Disconnected");
 				}
 			}
-			xo_close_instance("target");
+			xo_close_instance("session");
 		}
 		if (isl.isl_nentries != 0) {
-			xo_close_list("target");
+			xo_close_list("session");
 		}
 	}
 
