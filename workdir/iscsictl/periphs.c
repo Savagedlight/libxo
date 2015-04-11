@@ -74,7 +74,7 @@ print_periphs(int session_id)
 		xo_warn("couldn't open %s", XPT_DEVICE);
 		return;
 	}
-		
+
 	/*
 	 * First, iterate over the whole list to find the bus.
 	 */
@@ -106,7 +106,7 @@ print_periphs(int session_id)
 	have_path_id = 0;
 	skip_bus = 1;
 	skip_device = 1;
-	
+
 	xo_open_container("devices");
 	xo_open_list("lun");
 	/*
@@ -126,7 +126,7 @@ print_periphs(int session_id)
 			      ccb.ccb_h.status, ccb.cdm.status);
 			break;
 		}
-		
+
 		for (i = 0; i < ccb.cdm.num_matches; i++) {
 			switch (ccb.cdm.matches[i].type) {
 			case DEV_MATCH_BUS: {
@@ -167,19 +167,19 @@ print_periphs(int session_id)
 
 				if (strcmp(periph_result->periph_name, "pass") == 0)
 					continue;
-			
+
 				xo_open_instance("lun");
 				xo_emit("{e:id/%d}", periph_result->target_lun);
 				xo_emit("{Vq:device/%s%d} ",
-					periph_result->periph_name,
-					periph_result->unit_number);
+				    periph_result->periph_name,
+				    periph_result->unit_number);
 				xo_close_instance("lun");
-				
+
 				if (have_path_id == 0) {
 					path_id = periph_result->path_id;
 					have_path_id = 1;
 				}
-				
+
 				break;
 			}
 			default:
