@@ -485,71 +485,71 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 		for (i = 0; i < isl.isl_nentries; i++) {
 			state = &states[i];
 			conf = &state->iss_conf;
-			
+
 			xo_open_instance("session");
-			
-			/* 
+
+			/*
 			 * Display-only modifier as this information
 			 * is also present within the 'session' container
 			 */
 			xo_emit("{L:/%-18s}{V:sessionId/%u}\n",
-				"Session ID:", state->iss_id);
-			
+			    "Session ID:", state->iss_id);
+
 			xo_open_container("initiator");
 			xo_emit("{L:/%-18s}{V:name/%s}\n",
-				"Initiator name:", conf->isc_initiator);
+			    "Initiator name:", conf->isc_initiator);
 			xo_emit("{L:/%-18s}{V:portal/%s}\n",
-				"Initiator portal:", conf->isc_initiator_addr);
+			    "Initiator portal:", conf->isc_initiator_addr);
 			xo_emit("{L:/%-18s}{V:alias/%s}\n",
-				"Initiator alias:", conf->isc_initiator_alias);
+			    "Initiator alias:", conf->isc_initiator_alias);
 			xo_close_container("initiator");
 
 			xo_open_container("target");
 			xo_emit("{L:/%-18s}{V:name/%s}\n",
-				"Target name:", conf->isc_target);
+			    "Target name:", conf->isc_target);
 			xo_emit("{L:/%-18s}{V:portal/%s}\n",
-				"Target portal:", conf->isc_target_addr);
+			    "Target portal:", conf->isc_target_addr);
 			xo_emit("{L:/%-18s}{V:alias/%s}\n",
-				"Target alias:", state->iss_target_alias);
+			    "Target alias:", state->iss_target_alias);
 			xo_close_container("target");
 
 			xo_open_container("auth");
 			xo_emit("{L:/%-18s}{V:user/%s}\n",
-				"User:", conf->isc_user);
+			    "User:", conf->isc_user);
 			xo_emit("{L:/%-18s}{V:secret/%s}\n",
-				"Secret:", conf->isc_secret);
+			    "Secret:", conf->isc_secret);
 			xo_emit("{L:/%-18s}{V:mutualUser/%s}\n",
-				"Mutual user:", conf->isc_mutual_user);
+			    "Mutual user:", conf->isc_mutual_user);
 			xo_emit("{L:/%-18s}{V:mutualSecret/%s}\n",
-				"Mutual secret:", conf->isc_mutual_secret);
+			    "Mutual secret:", conf->isc_mutual_secret);
 			xo_close_container("auth");
 
 			xo_emit("{L:/%-18s}{V:type/%s}\n",
-				"Session type:", (conf->isc_discovery ? "Discovery" : "Normal"));
+			    "Session type:",
+			    conf->isc_discovery ? "Discovery" : "Normal");
 			xo_emit("{L:/%-18s}{V:state/%s}\n",
-				"Session state:", 
-				(state->iss_connected ?
-			    "Connected" : "Disconnected"));
+			    "Session state:",
+			    state->iss_connected ? "Connected" : "Disconnected");
 			xo_emit("{L:/%-18s}{V:failureReason/%s}\n",
-				"Failure reason:", state->iss_reason);
-			xo_emit("{L:/%-18s}{V:header/%s}\n",
-				"Header digest:", 
-				(state->iss_header_digest == ISCSI_DIGEST_CRC32C ?
-			    "CRC32C" : "None"));
-			xo_emit("{L:/%-18s}{V:data/%s}\n",
-				"Data digest:", 
-				(state->iss_data_digest == ISCSI_DIGEST_CRC32C ?
-			    "CRC32C" : "None"));
+			    "Failure reason:", state->iss_reason);
+			xo_emit("{L:/%-18s}{V:headerDigest/%s}\n",
+			    "Header digest:",
+			    state->iss_header_digest == ISCSI_DIGEST_CRC32C ?
+			    "CRC32C" : "None");
+			xo_emit("{L:/%-18s}{V:dataDigest/%s}\n",
+			    "Data digest:",
+			    state->iss_data_digest == ISCSI_DIGEST_CRC32C ?
+			    "CRC32C" : "None");
 			xo_emit("{L:/%-18s}{V:dataSegmentLen/%d}\n",
-				"DataSegmentLen:", state->iss_max_data_segment_length);
+			    "DataSegmentLen:", state->iss_max_data_segment_length);
 			xo_emit("{L:/%-18s}{V:immediateData/%s}\n",
-				"ImmediateData:", state->iss_immediate_data ? "Yes" : "No");
+			    "ImmediateData:", state->iss_immediate_data ? "Yes" : "No");
 			xo_emit("{L:/%-18s}{V:iSER/%s}\n",
-				"iSER (RDMA):", conf->isc_iser ? "Yes" : "No");			
+			    "iSER (RDMA):", conf->isc_iser ? "Yes" : "No");
 			xo_emit("{L:/%-18s}{V:offloadDriver/%s}\n",
-				"Offload driver:", state->iss_offload);
+			    "Offload driver:", state->iss_offload);
 			xo_emit("{L:/%-18s}",
-				"Device nodes:");
+			    "Device nodes:");
 			print_periphs(state->iss_id);
 			xo_emit("\n\n");
 			xo_close_instance("session");
@@ -557,20 +557,19 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 		xo_close_list("session");
 	} else {
 		xo_emit("{T:/%-36s} {T:/%-16s} {T:/%s}\n",
-			"Target name", "Target portal", "State");
-		
+		    "Target name", "Target portal", "State");
+
+		if (isl.isl_nentries != 0)
+			xo_open_list("session");
 		for (i = 0; i < isl.isl_nentries; i++) {
-			if (i == 0) {
-				xo_open_list("session");
-			}
-			
+
 			state = &states[i];
 			conf = &state->iss_conf;
 
 			xo_open_instance("session");
 			xo_emit("{V:name/%-36s/%s} {V:portal/%-16s/%s} ",
-				conf->isc_target, conf->isc_target_addr);
-			
+			    conf->isc_target, conf->isc_target_addr);
+
 			if (state->iss_reason[0] != '\0') {
 				xo_emit("{V:state/%s}\n", state->iss_reason);
 			} else {
@@ -586,9 +585,8 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			}
 			xo_close_instance("session");
 		}
-		if (isl.isl_nentries != 0) {
+		if (isl.isl_nentries != 0)
 			xo_close_list("session");
-		}
 	}
 
 	return (0);
@@ -639,10 +637,10 @@ main(int argc, char **argv)
 	int failed = 0;
 	struct conf *conf;
 	struct target *targ;
-	
+
 	argc = xo_parse_args(argc, argv);
 	xo_open_container("iscsictl");
-	
+
 	while ((ch = getopt(argc, argv, "AMRLac:d:i:n:p:t:u:s:v")) != -1) {
 		switch (ch) {
 		case 'A':
@@ -816,7 +814,7 @@ main(int argc, char **argv)
 
 	} else {
 		assert(Lflag != 0);
-		
+
 		if (portal != NULL)
 			xo_errx(1, "-L and -p and mutually exclusive");
 		if (target != NULL)
@@ -897,14 +895,14 @@ main(int argc, char **argv)
 		else
 			failed += kernel_list(iscsi_fd, targ, vflag);
 	}
-	
+
 	error = close(iscsi_fd);
 	if (error != 0)
 		xo_err(1, "close");
-		
+
 	if (failed > 0)
 		return (1);
-		
+
 	xo_close_container("iscsictl");
 	xo_finish();
 	return (0);
