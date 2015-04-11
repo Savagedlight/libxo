@@ -532,11 +532,11 @@ kernel_list(int iscsi_fd, const struct target *targ __unused,
 			    state->iss_connected ? "Connected" : "Disconnected");
 			xo_emit("{L:/%-18s}{V:failureReason/%s}\n",
 			    "Failure reason:", state->iss_reason);
-			xo_emit("{L:/%-18s}{V:header/%s}\n",
+			xo_emit("{L:/%-18s}{V:headerDigest/%s}\n",
 			    "Header digest:",
 			    state->iss_header_digest == ISCSI_DIGEST_CRC32C ?
 			    "CRC32C" : "None");
-			xo_emit("{L:/%-18s}{V:data/%s}\n",
+			xo_emit("{L:/%-18s}{V:dataDigest/%s}\n",
 			    "Data digest:",
 			    state->iss_data_digest == ISCSI_DIGEST_CRC32C ?
 			    "CRC32C" : "None");

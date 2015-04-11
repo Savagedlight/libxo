@@ -169,7 +169,7 @@ print_periphs(int session_id)
 					continue;
 
 				xo_open_instance("lun");
-				xo_emit("{e:id/%d}", periph_result->target_lun);
+				xo_emit("{e:lun/%d}", periph_result->target_lun);
 				xo_emit("{Vq:device/%s%d} ",
 				    periph_result->periph_name,
 				    periph_result->unit_number);
