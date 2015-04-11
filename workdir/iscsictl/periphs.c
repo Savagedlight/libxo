@@ -67,7 +67,8 @@ print_periphs(int session_id)
 	union ccb ccb;
 	int bufsize, fd;
 	unsigned int i;
-	int skip_bus, skip_device;
+	int have_path_id, skip_bus, skip_device;
+	path_id_t path_id;
 
 	if ((fd = open(XPT_DEVICE, O_RDWR)) == -1) {
 		xo_warn("couldn't open %s", XPT_DEVICE);
@@ -102,12 +103,9 @@ print_periphs(int session_id)
 	ccb.cdm.num_patterns = 0;
 	ccb.cdm.pattern_buf_len = 0;
 
+	have_path_id = 0;
 	skip_bus = 1;
 	skip_device = 1;
-	
-	path_id_t path_id;
-	target_id_t target_id;	
-	int have_path_id = 0;
 	
 	xo_open_container("devices");
 	xo_open_list("lun");
@@ -179,7 +177,6 @@ print_periphs(int session_id)
 				
 				if (have_path_id == 0) {
 					path_id = periph_result->path_id;
-					target_id = periph_result->target_id;					
 					have_path_id = 1;
 				}
 				
@@ -194,12 +191,11 @@ print_periphs(int session_id)
 	} while ((ccb.ccb_h.status == CAM_REQ_CMP)
 		&& (ccb.cdm.status == CAM_DEV_MATCH_MORE));
 	xo_close_list("lun");
-	
-	xo_emit("{e:scbus/%d}{e:target/%d}",
-		(have_path_id ? path_id : -1),
-		(have_path_id ? target_id : -1));
+
+	xo_emit("{e:scbus/%d}{e:bus/%d}{e:target/%d}",
+		have_path_id ? path_id : -1, 0, have_path_id ? 0 : -1);
 	xo_close_container("devices");
-	
+
 	close(fd);
 }
 
