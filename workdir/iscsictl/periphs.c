@@ -103,6 +103,7 @@ print_periphs(int session_id)
 	ccb.cdm.num_patterns = 0;
 	ccb.cdm.pattern_buf_len = 0;
 
+	path_id = -1; /* Make GCC happy. */
 	have_path_id = 0;
 	skip_bus = 1;
 	skip_device = 1;
@@ -193,7 +194,7 @@ print_periphs(int session_id)
 	xo_close_list("lun");
 
 	xo_emit("{e:scbus/%d}{e:bus/%d}{e:target/%d}",
-		have_path_id ? path_id : -1, 0, have_path_id ? 0 : -1);
+		have_path_id ? (int)path_id : -1, 0, have_path_id ? 0 : -1);
 	xo_close_container("devices");
 
 	close(fd);
